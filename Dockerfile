@@ -2,16 +2,11 @@ FROM ghcr.io/nathanwasson/spacelift-tailscale-ansible:latest
 
 USER root
 
-# Download and install bws CLI
-RUN apk add --no-cache wget unzip && \
-    wget https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip && \
-    unzip bws-x86_64-unknown-linux-gnu-1.0.0.zip && \
-    mv bws /usr/local/bin/ && \
-    chmod +x /usr/local/bin/bws && \
-    rm bws-x86_64-unknown-linux-gnu-1.0.0.zip && \
-    apk del wget unzip
-
-# Install glibc compatibility for the gnu version
-RUN apk add --no-cache gcompat
+# Install build dependencies and compile bws from source
+RUN apk add --no-cache curl cargo rust openssl-dev pkgconfig && \
+    export OPENSSL_NO_VENDOR=Y && \
+    cargo install bws --locked --root /usr/local && \
+    apk del cargo rust openssl-dev pkgconfig curl && \
+    apk add --no-cache libgcc
 
 USER spacelift
