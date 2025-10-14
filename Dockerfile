@@ -1,33 +1,17 @@
-# Builder stage
-FROM python:3.12-alpine AS builder
-
-# Install ALL build dependencies including Rust
-RUN apk add --no-cache \
-    gcc \
-    musl-dev \
-    libffi-dev \
-    openssl-dev \
-    cargo \
-    rust \
-    pkgconfig \
-    git
-# Install Python packages
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir --target=/install \
-    git+https://github.com/bitwarden/sdk-sm.git@python-v1.0.0#subdirectory=languages/python
-
-# Runtime stage
 FROM ghcr.io/nathanwasson/spacelift-tailscale-ansible:latest
 
 USER root
 
-# Install runtime dependencies (not build tools)
-RUN apk add --no-cache \
-    libgcc \
-    libstdc++
+# Download and install bws CLI
+RUN apk add --no-cache wget unzip && \
+    wget https://github.com/bitwarden/sdk-sm/releases/download/bws-v1.0.0/bws-x86_64-unknown-linux-gnu-1.0.0.zip && \
+    unzip bws-x86_64-unknown-linux-gnu-1.0.0.zip && \
+    mv bws /usr/local/bin/ && \
+    chmod +x /usr/local/bin/bws && \
+    rm bws-x86_64-unknown-linux-gnu-1.0.0.zip && \
+    apk del wget unzip
 
-# Copy the Python packages from the builder stage to the runtime image
-COPY --from=builder /install /usr/local/lib/python3.12/site-packages/
+# Install glibc compatibility for the gnu version
+RUN apk add --no-cache gcompat
 
 USER spacelift
