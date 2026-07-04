@@ -12,4 +12,6 @@ RUN apk add --no-cache libgcc rsync \
  && rm /tmp/bws.zip \
  && apk del .bws-build-deps
 
+RUN bws --version
+
 USER spacelift
