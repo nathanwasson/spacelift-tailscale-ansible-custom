@@ -1,4 +1,4 @@
-FROM ghcr.io/nathanwasson/spacelift-tailscale-ansible:latest
+FROM ghcr.io/nathanwasson/spacelift-tailscale-ansible:pr-4
 
 USER root
 
